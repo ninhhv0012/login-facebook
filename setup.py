@@ -9,7 +9,7 @@ def install_requirements():
         print("Đang cài đặt các gói cần thiết...")
         subprocess.check_call([
             sys.executable, "-m", "pip", "install", 
-            "requests", "beautifulsoup4", "lxml"
+            "requests", "beautifulsoup4", "lxml" , "pynacl" ,"pycryptodome",
         ])
         print("✅ Đã cài đặt thành công tất cả các gói!")
     except subprocess.CalledProcessError as e:

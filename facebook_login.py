@@ -5,7 +5,7 @@ import json
 import base64
 from bs4 import BeautifulSoup
 from urllib.parse import urlencode, urlparse
-from utils import get_cookies_string
+from utils import get_cookies_string, fb_encrypt_password
 import random
 
 class FacebookLogin:
@@ -208,6 +208,22 @@ class FacebookLogin:
                 if match:
                     form_data[field_name] = match.group(1)
                     print(f"   ✅ {field_name}: {match.group(1)[:30]}...")
+                    
+                    
+        pubkey_patterns = [
+            r'"pubKey":\s*\{[^}]*"publicKey":\s*"([^"]+)"[^}]*"keyId":\s*(\d+)',
+            r'"publicKey":\s*"([^"]+)"[^}]*"keyId":\s*(\d+)',
+            r'pubKey.*?publicKey.*?"([^"]+)".*?keyId.*?(\d+)'
+        ]
+        
+        for pattern in pubkey_patterns:
+            match = re.search(pattern, html_content)
+            if match:
+                form_data['pubKey'] = {
+                    'publicKey': match.group(1),
+                    'keyId': int(match.group(2)) if match.group(2).isdigit() else match.group(2)
+                }
+                break        
         
         # Phương pháp 4: Thêm các giá trị mặc định nếu không có
         defaults = {
@@ -251,10 +267,20 @@ class FacebookLogin:
                     'cookies': None
                 }
             
+            
+            #encrypt password
+            
+            
+            pubKey = form_data['pubKey']['publicKey']
+            keyId = key = form_data['pubKey']['keyId']
+            ts = str(int(time.time()))
+            encpass = fb_encrypt_password(pubKey, keyId, password,ts)
+            
+            
             # Bước 3: Chuẩn bị payload đăng nhập thực tế
             login_payload = {
             'email': email,
-            'pass': password,
+            'encpass': encpass,
             'login': 'Log In'  # Đây là giá trị của nút
             }
             
@@ -279,7 +305,7 @@ class FacebookLogin:
             time.sleep(random.uniform(2, 5))
             
             # Bước 6: Thực hiện đăng nhập với endpoint phù hợp
-            login_endpoint = 'https://www.facebook.com/login/device-based/regular/login/'
+            login_endpoint = 'https://www.facebook.com/login/'
             
             # Thêm privacy mutation token vào URL nếu có
             if 'privacy_mutation_token' in form_data:
