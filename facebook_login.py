@@ -17,8 +17,11 @@ class FacebookLogin:
         """Cấu hình session với hành vi trình duyệt thực tế"""
         # Sử dụng User-Agent giống trình duyệt thật
         user_agents = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Safari/605.1.15'
         ]
         
         self.session.headers.update({
@@ -43,23 +46,53 @@ class FacebookLogin:
         try:
             print("🌐 Đang mô phỏng hành vi duyệt web thực tế...")
             
+            
+            
+             # Bước 1: Truy cập trang chủ Google (như người thật)
+            print("1️⃣ Truy cập Google...")
+            time.sleep(random.uniform(1, 3))
+            google_response = self.session.get('https://www.google.com/', timeout=10)
+            print(f"   ✅ Google: {google_response.status_code}")
+            
+            # Bước 2: Truy cập trang khác để tạo lịch sử duyệt web
+            print("2️⃣ Tạo lịch sử duyệt web...")
+            time.sleep(random.uniform(2, 5))
+            
+            # Truy cập một số trang phổ biến
+            sites_to_visit = [
+                'https://www.wikipedia.org/',
+                'https://www.youtube.com/',
+                'https://www.gmail.com/'
+            ]
+            
+            for site in random.sample(sites_to_visit, 1):
+                try:
+                    self.session.get(site, timeout=10)
+                    print(f"   ✅ Visited: {site}")
+                    time.sleep(random.uniform(1, 3))
+                except:
+                    pass
+            
+            # Bước 3: Truy cập Facebook từ Google (như search)
+            print("3️⃣ Truy cập Facebook từ Google...")
+
             # Bước 1: Truy cập trang chính trước
             time.sleep(random.uniform(1, 3))
             main_response = self.session.get('https://www.facebook.com/', timeout=15)
             print(f"✅ Đã tải trang chính: {main_response.status_code}")
             
-            # Bước 2: Mô phỏng độ trễ và hành động ngẫu nhiên
+            # Bước 4: Mô phỏng độ trễ và hành động ngẫu nhiên
             time.sleep(random.uniform(2, 4))
             
-            # Bước 3: Tải trang đăng nhập với trường Referer phù hợp
+            # Bước 5: Tải trang đăng nhập với trường Referer phù hợp
             self.session.headers.update({
-                'Referer': 'https://www.facebook.com/'
+                'Referer': 'https://www.google.com/'
             })
             
             login_response = self.session.get('https://www.facebook.com/login/', timeout=15)
             print(f"✅ Đã tải trang đăng nhập: {login_response.status_code}")
             
-            return login_response.text, 'https://www.facebook.com/login/'
+            return login_response.text, 'https://www.facebook.com/'
             
         except Exception as e:
             print(f"❌ Mô phỏng duyệt web thất bại: {str(e)}")
